@@ -52,19 +52,20 @@ L82")
                "L" -1
                "R" 1)
         new-pos (+ pos (* turn dist))
-        modded (mod new-pos 100)]
+        modded (mod new-pos 100)
+        abs-quot (abs (quot new-pos 100))]
     (cond
-      (= pos 0) [(abs (quot new-pos 100)) modded]
-      (> pos 0) (cond
-                  (= turn 1) [(quot new-pos 100) modded]
-                  (= turn -1) (if (<= new-pos 0)
-                                [(inc (abs (quot new-pos 100))) modded]
-                                [0 modded]))
-      (< pos 0) (cond
-                  (= turn 1) (if (>= new-pos 0)
-                               [(inc (quot new-pos 100)) modded]
-                               [0 modded])
-                  (= turn -1) [(abs (quot new-pos 100)) modded])
+      (= pos 0) [abs-quot modded]
+      (> pos 0) (case turn
+                  1 [abs-quot modded]
+                  -1 (if (<= new-pos 0)
+                       [(inc abs-quot) modded]
+                       [0 modded]))
+      (< pos 0) (case turn
+                  1 (if (>= new-pos 0)
+                      [(inc abs-quot) modded]
+                      [0 modded])
+                  -1 [abs-quot modded])
       :else (throw (Exception. (str "Unexpected pos: " pos))))))
 
 (comment
