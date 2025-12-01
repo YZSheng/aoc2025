@@ -21,7 +21,6 @@ L82")
                {:dir dir
                 :dist (Integer/parseInt dist)}))))
 
-(parse-input sample-input)
 
 (defn rotate [pos instruction]
   (let [{:keys [dir dist]} instruction
@@ -30,7 +29,6 @@ L82")
                "R" 1)]
     (mod (+ pos (* turn dist)) 100)))
 
-(rotate 50 {:dir "L" :dist 68})
 
 (defn solve-part1 [input]
   (let [instructions (parse-input input)]
@@ -47,3 +45,74 @@ L82")
 (solve-part1 sample-input)
 
 (solve-part1 (slurp "resources/day01/input.txt"))
+
+(defn rotate-2 [pos instruction]
+  (let [{:keys [dir dist]} instruction
+        turn (case dir
+               "L" -1
+               "R" 1)
+        new-pos (+ pos (* turn dist))
+        modded (mod new-pos 100)]
+    (cond
+      (= pos 0) [(abs (quot new-pos 100)) modded]
+      (> pos 0) (cond
+                  (= turn 1) [(quot new-pos 100) modded]
+                  (= turn -1) (if (<= new-pos 0)
+                                [(inc (abs (quot new-pos 100))) modded]
+                                [0 modded]))
+      (< pos 0) (cond
+                  (= turn 1) (if (>= new-pos 0)
+                               [(inc (quot new-pos 100)) modded]
+                               [0 modded])
+                  (= turn -1) [(abs (quot new-pos 100)) modded])
+      :else (throw (Exception. (str "Unexpected pos: " pos))))))
+
+(comment
+  (parse-input sample-input)
+  (rotate 50 {:dir "L" :dist 68})
+
+  ;; 1 -> 102 => [1 2]
+  (rotate-2 1 {:dir "R" :dist 101})
+  ;; 99 -> 100 => [1 0]
+  (rotate-2 99 {:dir "R" :dist 1})
+  ;; 50 -> 1050 => [10 50]
+  (rotate-2 50 {:dir "R" :dist 1000})
+  ;; 0 -> 100 => [1 0]
+  (rotate-2 0 {:dir "R" :dist 100})
+  ;; 1 -> -1 => [1 99]
+  (rotate-2 1 {:dir "L" :dist 2})
+  ;; 50 -> 30 => [0 30]
+  (rotate-2 50 {:dir "L" :dist 20})
+  ;; 1 -> -101 => [2 99]
+  (rotate-2 1 {:dir "L" :dist 102})
+
+  ;; -1 -> -101 => [1 99]
+  (rotate-2 -1 {:dir "L" :dist 100})
+  ;; -1 -> -2 => [0 98]
+  (rotate-2 -1 {:dir "L" :dist 1})
+  ;; 0 -> -100 => [1 0]
+  (rotate-2 0 {:dir "L" :dist 100})
+  ;; -50 -> 50 => [1 50]
+  (rotate-2 -50 {:dir "R" :dist 100})
+  ;; -50 -> -40 => [0 60]
+  (rotate-2 -50 {:dir "R" :dist 10})
+  ;; 55 -> 0 => [1 0]
+  (rotate-2 55 {:dir "L" :dist 55})
+  ;; 99 -> 0 => [1 0]
+  (rotate-2 99 {:dir "R" :dist 1})
+  ;; -1 -> 0 => [1 0]
+  (rotate-2 -1 {:dir "R" :dist 1}))
+
+(defn solve-part2 [input]
+  (let [instructions (parse-input input)]
+    (loop [zero-hit 0
+           pos 50
+           [inst & rest] instructions]
+      (if inst
+        (let [[passed-zero new-pos] (rotate-2 pos inst)]
+          (recur (+ zero-hit passed-zero) new-pos rest))
+        zero-hit))))
+
+(solve-part2 sample-input)
+
+(solve-part2 (slurp "resources/day01/input.txt"))
