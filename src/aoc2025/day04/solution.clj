@@ -54,3 +54,29 @@
 
 (solve-1 sample-input)
 (solve-1 (slurp "resources/day04/input.txt"))
+
+(defn one-pass [grid]
+  (->> (let [rows (count grid)
+             cols (count (first grid))]
+         (for [row (range rows)
+               col (range cols)
+               :when (= (get-in grid [row col]) "@")]
+           [row col (get-neighbors grid row col)]))
+       (filter #(< (count (last %)) 4))
+       (reduce (fn [[counter grid] [row col _]]
+                 (let [new-grid (assoc-in grid [row col] ".")]
+                   [(inc counter) new-grid]))
+               [0 grid])))
+
+(one-pass (parse-input sample-input))
+
+(defn solve-2 [input]
+  (loop [grid (parse-input input)
+         total-removed 0]
+    (let [[removed new-grid] (one-pass grid)]
+      (if (zero? removed)
+        total-removed
+        (recur new-grid (+ total-removed removed))))))
+
+(solve-2 sample-input)
+(solve-2 (slurp "resources/day04/input.txt"))
