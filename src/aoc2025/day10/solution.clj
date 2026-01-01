@@ -11,11 +11,14 @@
 
 (defn parse-line [line]
   (let [[_ target buttons constraints] (re-matches #"\[(.*)\] (\(.*\)) \{(.*)\}" line)]
-    {:target (parse-target target) :buttons (->> (str/split buttons #"\s+")
-                                                 (map #(-> %
-                                                           (str/replace #"[\(\)]" "")
-                                                           (str/split #",")))
-                                                 (map (fn [s] (mapv #(Integer/parseInt %) s)))) :constraints constraints}))
+    {:target (parse-target target)
+     :buttons (->> (str/split buttons #"\s+")
+                   (map #(-> %
+                             (str/replace #"[\(\)]" "")
+                             (str/split #",")))
+                   (map (fn [s] (mapv #(Integer/parseInt %) s)))) 
+     :constraints (mapv #(Integer/parseInt %) (re-seq #"\d+" constraints))}))
+
 (defn combinations [coll size]
   (cond
     (= size 0) '(())
